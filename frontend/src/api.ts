@@ -1,11 +1,15 @@
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000/api').replace(/\/$/, '');
 
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string) {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
     super(message);
+    this.status = status;
+    this.code = code;
   }
 }
-
 export function getToken(): string | null {
   return localStorage.getItem('triagesync_token');
 }
