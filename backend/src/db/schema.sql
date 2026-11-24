@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS tickets (
   "createdAt" timestamptz NOT NULL DEFAULT now(),
   "updatedAt" timestamptz NOT NULL DEFAULT now()
 );
-
+CREATE INDEX IF NOT EXISTS tickets_created_at_id_desc_idx ON tickets ("createdAt" DESC, id DESC);
+CREATE INDEX IF NOT EXISTS tickets_filters_idx ON tickets (status, category, priority, "createdAt" DESC, id DESC);
 CREATE TABLE IF NOT EXISTS ticket_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "ticketId" uuid NOT NULL REFERENCES tickets(id) ON DELETE CASCADE,

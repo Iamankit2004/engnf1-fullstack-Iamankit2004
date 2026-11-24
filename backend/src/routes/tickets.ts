@@ -145,20 +145,29 @@ router.get(
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    const countRes = await pool.query(`SELECT COUNT(*)::int AS total FROM tickets ${where}`, params);
-    const total = countRes.rows[0].total;
-
+    const filterParams = [...params];
     params.push(limit, (page - 1) * limit);
+
     const { rows } = await pool.query(
-      `SELECT ${TICKET_COLS}
+      `SELECT ${TICKET_COLS}, COUNT(*) OVER()::int AS _total
        FROM tickets ${where}
        ORDER BY "createdAt" DESC, id DESC
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );
 
+    let total = 0;
+    if (rows.length > 0) {
+      total = rows[0]._total;
+    } else if (page > 1) {
+      const countRes = await pool.query(`SELECT COUNT(*)::int AS total FROM tickets ${where}`, filterParams);
+      total = countRes.rows[0].total;
+    }
+
+    const data = rows.map(({ _total, ...ticket }) => ticket);
+
     res.json({
-      data: rows,
+      data,
       page,
       pageSize: limit,
       total,
